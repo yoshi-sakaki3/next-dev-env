@@ -1,0 +1,59 @@
+# Next.js 開発環境（Gold LINK DX）
+# 使い方は README.md を参照。普段は .\dev.ps1 up / down で操作する。
+#
+#   app  … Next.js（商品管理の見本）                       http://localhost:3200
+#   db   … PostgreSQL 17（開発用 app・テスト用 app_test）  localhost:5437
+#
+# ポートはすべて 127.0.0.1 に限定（同じネットワークの他の PC からは見えない）
+
+name: gldx-next
+
+services:
+  app:
+    build:
+      context: ./docker/node
+      args:
+        NODE_VERSION: ${NODE_VERSION:-24}
+    working_dir: /app
+    command: ["pnpm", "dev"]
+    ports:
+      - "127.0.0.1:${APP_PORT:-3200}:3000"
+    volumes:
+      - ./app:/app
+      # node_modules と Next.js のビルド結果はコンテナ側に置く（Windows のフォルダに置くと遅いため）
+      - node-modules:/app/node_modules
+      - next-cache:/app/.next
+      - pnpm-store:/pnpm/store
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-app}:${DB_PASSWORD:-app}@db:5432/${DB_NAME:-app}
+      TEST_DATABASE_URL: postgres://${DB_USER:-app}:${DB_PASSWORD:-app}@db:5432/app_test
+      # Windows のフォルダは変更の通知が届かないので、1秒ごとに見に行く（next.config.ts で使う）
+      NEXT_WATCH_POLL_MS: "1000"
+      NEXT_TELEMETRY_DISABLED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    ports:
+      - "127.0.0.1:${DB_PORT:-5437}:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-app}
+      POSTGRES_DB: ${DB_NAME:-app}
+      TZ: Asia/Tokyo
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app} -d ${DB_NAME:-app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  node-modules:
+  next-cache:
+  pnpm-store:
+  db-data:

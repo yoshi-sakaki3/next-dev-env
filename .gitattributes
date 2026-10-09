@@ -1,0 +1,4 @@
+# コンテナ内で使うファイルは、Windows で取り出しても LF のままにする
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf

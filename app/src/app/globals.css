@@ -1,0 +1,38 @@
+@import 'tailwindcss';
+
+:root {
+  --background: #f6f8fa;
+  --foreground: #1f2328;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: system-ui, 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0d1117;
+    --foreground: #e6edf3;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* フォームの共通の見た目（Tailwind 4 では @utility で作ると、他のクラスの中でも @apply できる） */
+@utility field {
+  @apply w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-base dark:border-zinc-600 dark:bg-zinc-900;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-semibold disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn border-amber-700 bg-amber-700 text-white hover:bg-amber-800;
+}
+@utility btn-secondary {
+  @apply btn border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800;
+}
